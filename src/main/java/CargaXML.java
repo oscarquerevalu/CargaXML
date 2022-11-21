@@ -1,5 +1,6 @@
 import business_logic.BLComprobante;
 import model.Comprobante;
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
