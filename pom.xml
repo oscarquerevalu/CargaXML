@@ -43,19 +43,12 @@
     </dependency>
 
     <dependency>
-<<<<<<< HEAD
-        <groupId>commons-net</groupId>
+
+    <groupId>commons-net</groupId>
         <artifactId>commons-net</artifactId>
         <version>3.6</version>
     </dependency>
-=======
-      <groupId>commons-net</groupId>
-      <artifactId>commons-net</artifactId>
-      <version>3.6</version>
-    </dependency>
 
-
->>>>>>> ae43561d1f55bcd7fc746e6955b0cfe9bc0361f1
   </dependencies>
   <build>
     <plugins>
