@@ -1,5 +1,6 @@
 import business_logic.BLComprobante;
 import model.Comprobante;
+import org.apache.commons.net.ftp.FTPClient;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,6 +25,9 @@ public class CargaXML {
     private static Logger log = Logger.getLogger(CargaXML.class);
 
     public static void main(String[] args) throws IOException {
+
+        FTPClient ftpClient = new FTPClient();
+        ftpClient.connect("ip");
 
         File file = new File("SRV");
         for (String string : file.list()){
