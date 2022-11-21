@@ -24,25 +24,25 @@ public class PropertyValues {
             Propiedades propiedades=new Propiedades();
             try {
                 Properties prop = new Properties();
-		String propFileName = "consulta.properties";
- 
-		inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
- 
-                System.out.println(getClass().getClassLoader().toString());
-		if (inputStream != null) {
-                    prop.load(inputStream);
-		} else {
-                    throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
-		}
- 
-		Date time = new Date(System.currentTimeMillis());
-                // get the property value and print it out
-		String cadena_conexion = prop.getProperty("cadena_conexion");
+                String propFileName = "consulta.properties";
+
+                inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
+
+                        System.out.println(getClass().getClassLoader().toString());
+                if (inputStream != null) {
+                            prop.load(inputStream);
+                } else {
+                            throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
+                }
+
+                Date time = new Date(System.currentTimeMillis());
+                        // get the property value and print it out
+                String cadena_conexion = prop.getProperty("cadena_conexion");
+                String ftp_ipServer = prop.getProperty("ftp_ipServer");
+                String ftp_user = prop.getProperty("ftp_user");
+                String ftp_pass = prop.getProperty("ftp_pass");
                 
-		String correo = prop.getProperty("correo");
-		String aplicativo = prop.getProperty("aplicativo");
-                
-                propiedades=new Propiedades(cadena_conexion);
+                propiedades=new Propiedades(cadena_conexion, ftp_ipServer, ftp_user, ftp_pass);
                 
                 FileOutputStream out = new FileOutputStream("consulta.properties");
                 prop.setProperty("cadena_conexion", "america");

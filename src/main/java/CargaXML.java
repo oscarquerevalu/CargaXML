@@ -24,15 +24,28 @@ import org.apache.commons.net.ftp.FTPClient;
  */
 public class CargaXML {
     private static Logger log = Logger.getLogger(CargaXML.class);
-    private static String ip = "127.0.0.1";
-    private static String user = "TestUser";
-    private static String pass = "123456";
     private static String localFileFtp = "D:\\shared\\SRV";
     //1011user01\\DATA-SFTP\\
     public static void main(String[] args) throws IOException {
 
+        Propiedades archivo_propiedades;
+
+        File propiedades=new File("consulta.properties");
+
+        if(!propiedades.exists()){
+            archivo_propiedades=new Propiedades(
+                    "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;",
+                    "127.0.0.1",
+                    "TestUser",
+                    "123456"
+            );
+            new Util().escribirPropiedades(archivo_propiedades);
+        }else{
+            archivo_propiedades=new Util().leerPropiedades();
+        }
+
         File file = new File(localFileFtp);
-        conectar(ip,user,pass);
+        conectar(archivo_propiedades.getFtp_ipServer(),archivo_propiedades.getFtp_user(),archivo_propiedades.getFtp_pass());
         for (String string : file.list()){
             log.info(string);
             leerArchivo(localFileFtp + "\\" + string);
@@ -121,7 +134,10 @@ public class CargaXML {
 
         if(!propiedades.exists()){
             archivo_propiedades=new Propiedades(
-                    "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;"
+                    "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;",
+                    "127.0.0.1",
+                    "TestUser",
+                    "123456"
             );
             new Util().escribirPropiedades(archivo_propiedades);
         }else{
@@ -333,7 +349,10 @@ public class CargaXML {
 
         if(!propiedades.exists()){
             archivo_propiedades=new Propiedades(
-                    "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;"
+                    "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;",
+                    "127.0.0.1",
+                    "TestUser",
+                    "123456"
             );
             new Util().escribirPropiedades(archivo_propiedades);
         }else{
