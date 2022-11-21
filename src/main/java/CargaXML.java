@@ -9,28 +9,44 @@ import util.Propiedades;
 import util.Util;
 
 import java.io.*;
+import java.net.SocketException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-
+import org.apache.commons.net.ftp.FTPClient;
 /**
  *
  * @author OQUEREVALU
  */
 public class CargaXML {
     private static Logger log = Logger.getLogger(CargaXML.class);
-
+    private static String ip = "127.0.0.1";
+    private static String user = "TestUser";
+    private static String pass = "123456";
+    private static String localFileFtp = "D:\\shared\\SRV";
+    //1011user01\\DATA-SFTP\\
     public static void main(String[] args) throws IOException {
 
-        File file = new File("SRV");
+        File file = new File(localFileFtp);
+        conectar(ip,user,pass);
         for (String string : file.list()){
             log.info(string);
-            leerArchivo("SRV\\"+string);
+            leerArchivo(localFileFtp + "\\" + string);
         }
 
+    }
+    
+    public static void conectar(String ip, String user, String pass) throws SocketException, IOException{
+       FTPClient ftp = new FTPClient();
+        ftp.connect(ip);
+
+        if(ftp.login(user, pass))
+            System.out.println("login OK");
+        else
+            System.out.println("login Error");
     }
 
     public static void leerArchivo(String ruta) throws IOException {

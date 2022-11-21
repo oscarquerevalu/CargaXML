@@ -32,7 +32,8 @@
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.17</version>
+      <version>1.2.12</version>
+      <type>jar</type>
     </dependency>
 
     <dependency>
@@ -41,6 +42,11 @@
       <version>20180130</version>
     </dependency>
 
+    <dependency>
+        <groupId>commons-net</groupId>
+        <artifactId>commons-net</artifactId>
+        <version>3.6</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
