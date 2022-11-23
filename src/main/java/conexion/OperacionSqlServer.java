@@ -1,14 +1,15 @@
 package conexion;
 
+import org.apache.log4j.Logger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.sql.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class OperacionSqlServer
 {
+    private static Logger log = Logger.getLogger(OperacionSqlServer.class);
     Connection conexion;
             
     public OperacionSqlServer(String cadena_conexion)
@@ -21,14 +22,14 @@ public class OperacionSqlServer
         try {
             this.conexion.close();
         } catch (SQLException ex) {
-            Logger.getLogger(OperacionSqlServer.class.getName()).log(Level.SEVERE, null, ex);
+            log.error(ex);
         }
     }
 
     public ResultSet EjecutarConsulta(String query,Object condiciones[]) throws SQLException
     {
         CallableStatement  consulta= conexion.prepareCall(query);
-        System.out.println(query);
+        log.info(query);
         llenarConsultaConParametros(consulta,condiciones);
         consulta.execute();
         ResultSet rs = consulta.getResultSet();
@@ -54,25 +55,25 @@ public class OperacionSqlServer
         {
             if(argumentos[i]==null){
                 consulta.setString(i+1, "");
-                System.out.println("string: cadena vacia");
+                log.info("string: cadena vacia");
             }else{
                 if(argumentos[i].getClass()==Integer.class){
                     consulta.setInt(i+1, Integer.parseInt(argumentos[i].toString()));
-                    System.out.println("int: "+argumentos[i].toString());
+                    log.info("int: "+argumentos[i].toString());
                 }else{
                     if(argumentos[i].getClass()==Float.class){
                         consulta.setFloat(i+1, Float.parseFloat(argumentos[i].toString()));
-                        System.out.println("float: "+argumentos[i].toString());
+                        log.info("float: "+argumentos[i].toString());
                     }else{
                         if(argumentos[i].getClass()==String.class){
-                            System.out.println(argumentos[i].toString().length());
+                            log.info(argumentos[i].toString().length());
                             consulta.setString(i+1, argumentos[i].toString());
 
-                            System.out.println("string: "+argumentos[i].toString());
+                            log.info("string: "+argumentos[i].toString());
                         }else{
                             if(argumentos[i].getClass()==Double.class){
                                 consulta.setDouble(i+1, Double.parseDouble(argumentos[i].toString()));
-                                System.out.println("double: "+argumentos[i].toString());
+                                log.info("double: "+argumentos[i].toString());
                             }else{
                                 byte[] data =new byte[0];
                                 if(argumentos[i].getClass().equals(data.getClass())){
@@ -82,10 +83,10 @@ public class OperacionSqlServer
                                         os = new ObjectOutputStream(out);
                                         os.writeObject( argumentos[i]);
                                     } catch (IOException ex) {
-                                        System.out.println(ex);
+                                        log.info(ex);
                                     }
                                     consulta.setBytes(i+1, out.toByteArray());
-                                    System.out.println("byte array");
+                                    log.info("byte array");
 
                                 }else{
 

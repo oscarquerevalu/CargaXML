@@ -8,6 +8,7 @@ package data_accesss;
 import com.google.gson.Gson;
 import conexion.OperacionSqlServer;
 import model.Comprobante;
+import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
  * @author OQUEREVALU
  */
 public class DAComprobante {
+    private static Logger log = Logger.getLogger(DAComprobante.class);
     OperacionSqlServer operacion3;
     String jsonRespuesta="";
     Gson gson =  new Gson();
@@ -74,7 +76,7 @@ public class DAComprobante {
                 }
             if(rsCombo!=null){rsCombo.close();}
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
+            log.error(ex.getMessage());
             comprobante=null;
         }
         operacion3.cerrarConexion();
@@ -94,7 +96,7 @@ public class DAComprobante {
             operacion3.cerrarConexion();
             return lista;
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
+            log.error(ex.getMessage());
             operacion3.cerrarConexion();
             return lista;
         }

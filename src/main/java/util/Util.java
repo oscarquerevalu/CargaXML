@@ -5,6 +5,8 @@
  */
 package util;
 
+import org.apache.log4j.Logger;
+
 import java.io.*;
 import java.util.Properties;
 
@@ -13,6 +15,7 @@ import java.util.Properties;
  * @author OQUEREVALU
  */
 public class Util {
+    private static Logger log = Logger.getLogger(PropertyValues.class);
     
     public Propiedades leerPropiedades(){
         Propiedades registro=new Propiedades();
@@ -23,11 +26,13 @@ public class Util {
             String ftp_ipServer=prop.getProperty("ftp_ipServer");
             String ftp_user=prop.getProperty("ftp_user");
             String ftp_pass=prop.getProperty("ftp_pass");
+            int nro_dias= Integer.parseInt(prop.getProperty("nro_dias"));
 
-            System.out.println(cadena_conexion);
-            registro=new Propiedades(cadena_conexion, ftp_ipServer, ftp_user, ftp_pass);
+            log.info(cadena_conexion);
+            registro=new Propiedades(cadena_conexion, ftp_ipServer, ftp_user, ftp_pass, nro_dias);
         } catch (IOException io) {
             io.printStackTrace();
+            log.error(io);
         }
         return registro;
     }
@@ -39,9 +44,11 @@ public class Util {
             prop.setProperty("ftp_ipServer", registro.getFtp_ipServer());
             prop.setProperty("ftp_user", registro.getFtp_user());
             prop.setProperty("ftp_pass", registro.getFtp_pass());
+            prop.setProperty("nro_dias", String.valueOf(registro.getNro_dias()));
             prop.store(output, null);
         } catch (IOException io) {
             io.printStackTrace();
+            log.error(io);
         }
     }
 }

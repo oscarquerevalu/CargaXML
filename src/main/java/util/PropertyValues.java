@@ -5,6 +5,9 @@
  */
 package util;
 
+import data_accesss.DAComprobante;
+import org.apache.log4j.Logger;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.util.Properties;
  * @author OQUEREVALU
  */
 public class PropertyValues {
+    private static Logger log = Logger.getLogger(PropertyValues.class);
 	String result = "";
 	InputStream inputStream;
  
@@ -41,15 +45,16 @@ public class PropertyValues {
                 String ftp_ipServer = prop.getProperty("ftp_ipServer");
                 String ftp_user = prop.getProperty("ftp_user");
                 String ftp_pass = prop.getProperty("ftp_pass");
+                int nro_dias = Integer.parseInt(prop.getProperty("nro_dias"));
                 
-                propiedades=new Propiedades(cadena_conexion, ftp_ipServer, ftp_user, ftp_pass);
+                propiedades=new Propiedades(cadena_conexion, ftp_ipServer, ftp_user, ftp_pass, nro_dias);
                 
                 FileOutputStream out = new FileOutputStream("consulta.properties");
                 prop.setProperty("cadena_conexion", "america");
                 prop.store(out, null);
                 out.close();
             } catch (Exception e) {
-                System.out.println("Exception: " + e);
+                log.error("Exception: " + e);
             } finally {
                 inputStream.close();
             }

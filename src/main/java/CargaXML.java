@@ -17,6 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import org.apache.commons.net.ftp.FTPClient;
 /**
  *
@@ -25,10 +28,9 @@ import org.apache.commons.net.ftp.FTPClient;
 public class CargaXML {
     private static Logger log = Logger.getLogger(CargaXML.class);
     private static String localFileFtp = "D:\\shared\\SRV";
+    private static Propiedades archivo_propiedades;
     //1011user01\\DATA-SFTP\\
     public static void main(String[] args) throws IOException {
-
-        Propiedades archivo_propiedades;
 
         File propiedades=new File("consulta.properties");
 
@@ -37,7 +39,8 @@ public class CargaXML {
                     "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;",
                     "127.0.0.1",
                     "TestUser",
-                    "123456"
+                    "123456",
+                    3
             );
             new Util().escribirPropiedades(archivo_propiedades);
         }else{
@@ -50,6 +53,12 @@ public class CargaXML {
             log.info(string);
             leerArchivo(localFileFtp + "\\" + string);
         }
+
+        /*File file = new File("SRV");
+        for (String string : file.list()){
+            log.info(string);
+            leerArchivo("SRV\\"+string);
+        }*/
 
     }
     
@@ -88,37 +97,44 @@ public class CargaXML {
                 leerArchivo(ruta+"\\"+string);
             }
         }else{
+            LocalDateTime ldt =  LocalDateTime.ofInstant( attr.lastModifiedTime().toInstant(), ZoneId.systemDefault());
+            LocalDateTime now = LocalDateTime.now().minusDays(archivo_propiedades.getNro_dias());
 
-            if(ruta.toUpperCase().contains(".XML")){
-                String content = readFile(ruta, StandardCharsets.UTF_8);
-                //log.info(content);
-                String[] emp_array = ruta.split("\\\\");
-                String emp_data="";
-                for (int i = 0; i < emp_array.length; i++) {
-                    String path = emp_array[i];
-                    if(path.contains("user")){
-                        emp_data=path;
+            if(ldt.isAfter(now)){
+                log.info("now:"+now);
+                log.info("ldt:"+ldt);
+                log.info("Fecha es después de 3 días anteriores");
+                if(ruta.toUpperCase().contains(".XML")){
+                    String content = readFile(ruta, StandardCharsets.UTF_8);
+                    //log.info(content);
+                    String[] emp_array = ruta.split("\\\\");
+                    String emp_data="";
+                    for (int i = 0; i < emp_array.length; i++) {
+                        String path = emp_array[i];
+                        if(path.contains("user")){
+                            emp_data=path;
+                        }
                     }
-                }
 
-                try {
-                    JSONObject json = XML.toJSONObject(content);
-                    //String jsonString = json.toString(4);
-                    cargaComprobante(json, emp_data);
-
-                }catch (JSONException e) {
-                    log.error("Error JSON:");
-                    log.error(e);
                     try {
-                        content = content.replace("</cac:AccountingSupplierParty>","</cac:AccountingSupplierParty><cac:AccountingCustomerParty>");
-                        //log.info(content);
                         JSONObject json = XML.toJSONObject(content);
-                        String jsonString = json.toString(4);
-                        //log.info(jsonString);
+                        //String jsonString = json.toString(4);
                         cargaComprobante(json, emp_data);
-                    }catch (JSONException ex){
-                        log.error("Error JSON2:");
+
+                    }catch (JSONException e) {
+                        log.error("Error JSON:");
                         log.error(e);
+                        try {
+                            content = content.replace("</cac:AccountingSupplierParty>","</cac:AccountingSupplierParty><cac:AccountingCustomerParty>");
+                            //log.info(content);
+                            JSONObject json = XML.toJSONObject(content);
+                            String jsonString = json.toString(4);
+                            //log.info(jsonString);
+                            cargaComprobante(json, emp_data);
+                        }catch (JSONException ex){
+                            log.error("Error JSON2:");
+                            log.error(e);
+                        }
                     }
                 }
             }
@@ -128,21 +144,6 @@ public class CargaXML {
     static void cargaComprobante(JSONObject json, String emp_data){
         Comprobante comprobante = new Comprobante();
         JSONObject invoice = new JSONObject();
-        Propiedades archivo_propiedades;
-
-        File propiedades=new File("consulta.properties");
-
-        if(!propiedades.exists()){
-            archivo_propiedades=new Propiedades(
-                    "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;",
-                    "127.0.0.1",
-                    "TestUser",
-                    "123456"
-            );
-            new Util().escribirPropiedades(archivo_propiedades);
-        }else{
-            archivo_propiedades=new Util().leerPropiedades();
-        }
         try {
             invoice = json.getJSONObject("Invoice");
 
@@ -343,21 +344,6 @@ public class CargaXML {
 
     static void cargaCreditNote(JSONObject json, String emp_data){
         Comprobante comprobante = new Comprobante();
-        Propiedades archivo_propiedades;
-
-        File propiedades=new File("consulta.properties");
-
-        if(!propiedades.exists()){
-            archivo_propiedades=new Propiedades(
-                    "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;",
-                    "127.0.0.1",
-                    "TestUser",
-                    "123456"
-            );
-            new Util().escribirPropiedades(archivo_propiedades);
-        }else{
-            archivo_propiedades=new Util().leerPropiedades();
-        }
         JSONObject invoice = json.getJSONObject("CreditNote");
 
         log.info("=========================================");

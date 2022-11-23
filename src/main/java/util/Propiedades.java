@@ -14,15 +14,17 @@ public class Propiedades {
     String ftp_ipServer;
     String ftp_user;
     String ftp_pass;
+    int nro_dias;
 
     public Propiedades() {
     }
 
-    public Propiedades(String cadena_conexion, String ftp_ipServer, String ftp_user, String ftp_pass) {
+    public Propiedades(String cadena_conexion, String ftp_ipServer, String ftp_user, String ftp_pass, int nro_dias) {
         this.cadena_conexion = cadena_conexion;
         this.ftp_ipServer = ftp_ipServer;
         this.ftp_user = ftp_user;
         this.ftp_pass = ftp_pass;
+        this.nro_dias = nro_dias;
     }
 
     public String getCadena_conexion() {
@@ -55,5 +57,13 @@ public class Propiedades {
 
     public void setFtp_pass(String ftp_pass) {
         this.ftp_pass = ftp_pass;
+    }
+
+    public int getNro_dias() {
+        return nro_dias;
+    }
+
+    public void setNro_dias(int nro_dias) {
+        this.nro_dias = nro_dias;
     }
 }
