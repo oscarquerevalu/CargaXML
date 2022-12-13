@@ -15,7 +15,7 @@ import java.util.Properties;
  * @author OQUEREVALU
  */
 public class Util {
-    private static Logger log = Logger.getLogger(PropertyValues.class);
+    private static Logger log = Logger.getLogger(Util.class);
     
     public Propiedades leerPropiedades(){
         Propiedades registro=new Propiedades();

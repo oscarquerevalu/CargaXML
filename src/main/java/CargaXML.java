@@ -1,12 +1,18 @@
 import business_logic.BLComprobante;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import model.Comprobante;
-import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.net.ftp.*;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
 import util.Propiedades;
+import util.SftpClient;
 import util.Util;
 
 import java.io.*;
@@ -19,6 +25,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
+import java.util.Vector;
 
 import org.apache.commons.net.ftp.FTPClient;
 /**
@@ -27,15 +35,15 @@ import org.apache.commons.net.ftp.FTPClient;
  */
 public class CargaXML {
     private static Logger log = Logger.getLogger(CargaXML.class);
-    private static String localFileFtp = "D:\\shared\\SRV";
+    private static String localFileFtp = "SRV";
     private static Propiedades archivo_propiedades;
     //1011user01\\DATA-SFTP\\
     public static void main(String[] args) throws IOException {
 
-        File propiedades=new File("consulta.properties");
+        File propiedades = new File("consulta.properties");
 
-        if(!propiedades.exists()){
-            archivo_propiedades=new Propiedades(
+        if (!propiedades.exists()) {
+            archivo_propiedades = new Propiedades(
                     "jdbc:sqlserver://localhost;encrypt=false;databaseName=FMEDITERRANEO;user=sa; password=P@ssword2019;",
                     "127.0.0.1",
                     "TestUser",
@@ -43,22 +51,35 @@ public class CargaXML {
                     3
             );
             new Util().escribirPropiedades(archivo_propiedades);
-        }else{
-            archivo_propiedades=new Util().leerPropiedades();
+        } else {
+            archivo_propiedades = new Util().leerPropiedades();
         }
 
-        File file = new File(localFileFtp);
-        conectar(archivo_propiedades.getFtp_ipServer(),archivo_propiedades.getFtp_user(),archivo_propiedades.getFtp_pass());
+        /*File file = new File(localFileFtp);
+        //conectar(archivo_propiedades.getFtp_ipServer(),archivo_propiedades.getFtp_user(),archivo_propiedades.getFtp_pass());
+
         for (String string : file.list()){
             log.info(string);
             leerArchivo(localFileFtp + "\\" + string);
+        }*/
+        new File(localFileFtp).mkdirs();
+        try {
+            getArchivoFTP2();
+        }catch (Exception e){
+            log.error(e);
         }
 
-        /*File file = new File("SRV");
+        File file = new File(localFileFtp);
         for (String string : file.list()){
             log.info(string);
-            leerArchivo("SRV\\"+string);
-        }*/
+            try {
+                leerArchivo(localFileFtp+File.separator+string);
+            }catch (Exception e){
+                log.error(e);
+            }
+
+        }
+        FileUtils.deleteDirectory(file);
 
     }
     
@@ -67,9 +88,9 @@ public class CargaXML {
         ftp.connect(ip);
 
         if(ftp.login(user, pass))
-            System.out.println("login OK");
+            log.info("login OK");
         else
-            System.out.println("login Error");
+            log.error("login Error");
     }
 
     public static void leerArchivo(String ruta) throws IOException {
@@ -478,5 +499,178 @@ public class CargaXML {
     {
         byte[] encoded = Files.readAllBytes(Paths.get(path));
         return new String(encoded, encoding);
+    }
+
+    public static File getArchivoFTP() {
+        File f_retorno = null;
+        FTPClient ftp = new FTPClient();
+        int respuesta;
+        String ps_ip = archivo_propiedades.getFtp_ipServer();
+        String ps_usuario = archivo_propiedades.getFtp_user();
+        String ps_password = archivo_propiedades.getFtp_pass();
+        try {
+            // establecer conexion
+            String ruta_pdf_local = localFileFtp;
+
+            ftp.connect(ps_ip,22);
+            if (!ps_usuario.equals("") && !ps_password.equals("")) {
+                ftp.login(ps_usuario, ps_password);
+                respuesta = ftp.getReplyCode();
+                if (respuesta == 230) {
+                    ftp.setFileType(FTP.BINARY_FILE_TYPE);
+                    ftp.changeWorkingDirectory("/");
+                    respuesta = ftp.getReplyCode();
+                    if (FTPReply.isPositiveCompletion(respuesta)) {
+                        FTPFile archivosFTP[] = ftp.listFiles();
+                        respuesta = ftp.getReplyCode();
+                        if (FTPReply.isPositiveCompletion(respuesta)) {
+                            if (archivosFTP.length > 0) {
+                                for (int i = 0; i < archivosFTP.length; i++) {
+                                    String nombre = archivosFTP[i].getName();
+                                    //if (nombre.equals(ps_archivo)) {
+                                    String archivo_salida = ruta_pdf_local
+                                            + File.separator
+                                            + archivosFTP[i].getName()
+                                            + File.separator
+                                            + "DATA-SFTP";
+
+                                    log.info("fecha:"+ archivosFTP[i].getTimestamp().getTime().toString());
+                                    log.info(nombre);
+
+                                    if(archivosFTP[i].isDirectory()){
+                                        new File(archivo_salida).mkdirs();
+                                        ftp.changeWorkingDirectory("/"+archivosFTP[i].getName()+"/DATA-SFTP");
+                                        respuesta = ftp.getReplyCode();
+                                        if (FTPReply.isPositiveCompletion(respuesta)) {
+                                            FTPFile archivosFTP2[] = ftp.listFiles();
+
+                                            respuesta = ftp.getReplyCode();
+                                            if (FTPReply.isPositiveCompletion(respuesta)) {
+                                                if (archivosFTP2.length > 0) {
+                                                    for (int j = 0; j < archivosFTP2.length; j++) {
+                                                        Date fechaArchivo = archivosFTP2[j].getTimestamp().getTime();
+                                                        log.info("fecha:"+ fechaArchivo.toString());
+                                                        LocalDateTime ldt = LocalDateTime.ofInstant(fechaArchivo.toInstant(),ZoneId.systemDefault());
+                                                        LocalDateTime now = LocalDateTime.now().minusDays(archivo_propiedades.getNro_dias());
+
+                                                        if(ldt.isAfter(now)){
+                                                            boolean retorno_download = ftp.retrieveFile(archivosFTP2[j].getName(),new FileOutputStream(archivo_salida +"\\"+ archivosFTP2[j].getName()));
+                                                            if (retorno_download) {
+                                                                f_retorno = new File(archivo_salida);
+                                                                if (!(f_retorno.length() > 0)) {
+                                                                    log.info("Advertencia: Archivo con longitud 0");
+                                                                    f_retorno = null;
+                                                                }
+                                                            } else {
+                                                                log.info("No se pudo descargar en: "+ archivo_salida +"\\"+ archivosFTP2[j].getName());
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (f_retorno == null) {
+                                    log.info("No se pudo descargar el archivo: ");
+                                }
+                            } else {
+                                log.info("Listado de archivos de longitud invalida -"
+                                                + archivosFTP.length);
+                            }
+                        } else {
+                            log.info("No se pudo listar el directorio -");
+                        }
+                    } else {
+                        log.info("No se pudo cambiar de directorio -");
+                    }
+                } else {
+                    log.info("No se pudo autenticar -");
+                }
+            } else {
+                log.info("Login y password invalidos -");
+            }
+        } catch (SocketException ex) {
+            ex.printStackTrace();
+            log.error(ex);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            log.error(ex);
+        } finally {
+            try {
+                ftp.disconnect();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                log.error(ex);
+            }
+        }
+
+        return f_retorno;
+    }
+
+    public static File getArchivoFTP2() {
+        File f_retorno = null;
+        //FTPClient ftp = new FTPClient();
+        int respuesta;
+        String ps_ip = archivo_propiedades.getFtp_ipServer();
+        String ps_usuario = archivo_propiedades.getFtp_user();
+        String ps_password = archivo_propiedades.getFtp_pass();
+        SftpClient sftpClient = new SftpClient(ps_ip,ps_usuario);
+        try {
+            // establecer conexion
+            String ruta_pdf_local = localFileFtp;
+
+            if (!ps_usuario.equals("") && !ps_password.equals("")) {
+                sftpClient.authPassword(ps_password);
+                Vector<ChannelSftp.LsEntry> files =  sftpClient.listFiles("/");
+
+                for (ChannelSftp.LsEntry archivosFTP : files) {
+                    String nombre = archivosFTP.getFilename();
+                    SftpATTRS attrs       = archivosFTP.getAttrs();
+                    //if (nombre.equals(ps_archivo)) {
+                    String archivo_salida = ruta_pdf_local
+                            + File.separator
+                            + nombre
+                            + File.separator
+                            + "DATA-SFTP";
+
+                    log.info(nombre);
+
+                    if(attrs.isDir()){
+                        new File(archivo_salida).mkdirs();
+                        Vector<ChannelSftp.LsEntry> files2 =  sftpClient.listFiles("/"+nombre+"/DATA-SFTP");
+                        for (ChannelSftp.LsEntry archivosFTP2 : files2) {
+                            String nombre2 = archivosFTP2.getFilename();
+                            SftpATTRS attrs2 = archivosFTP2.getAttrs();
+                            int t = attrs2.getMTime();
+                            Date fechaArchivo = new Date(t * 1000L);
+                            log.info("fechaArchivo:"+ fechaArchivo.toString());
+                            LocalDateTime ldt = LocalDateTime.ofInstant(fechaArchivo.toInstant(),ZoneId.systemDefault());
+                            LocalDateTime now = LocalDateTime.now().minusDays(archivo_propiedades.getNro_dias());
+
+                            if(ldt.isAfter(now)){
+                                sftpClient.downloadFile("/"+nombre+"/DATA-SFTP/"+nombre2,archivo_salida);
+                            }
+                        }
+                    }
+                }
+
+            } else {
+                log.info("Login y password invalidos -");
+            }
+        } catch (JSchException e) {
+            log.error(e);
+        } catch (SftpException e) {
+            log.error(e);
+        } finally {
+            try {
+                sftpClient.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                log.error(ex);
+            }
+        }
+
+        return f_retorno;
     }
 }
